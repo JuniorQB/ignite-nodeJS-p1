@@ -2,6 +2,8 @@ import http from 'node:http'
 import { randomUUID } from 'node:crypto'
 import { json } from './middlewares/json.js'
 import { Database } from './database.js'
+import { routes } from './routes.js'
+import { extractQueryParams } from './utils/extract-query-params.js'
 
 
 const database = new Database
@@ -9,24 +11,18 @@ const server = http.createServer(async (request, response) => {
   const {method, url } = request
 
   await json(request, response);
+  const route = routes.find(route => route.method === method && route.path.test(url)
+  )
 
-  if(method === 'POST' && url === "/users"){
+  if(route){
+    const routeParams = request.url.match(route.path)
+    const {query, ...params} = routeParams.groups
 
-    const {name, email} = request.body
-   const  user = {
-      id: randomUUID(),
-      name,
-      email
-    }
-    database.insert('users', user)
-
-  return response.writeHead(200).end()  
-
-}
-  if(method === 'GET' && url === "/users"){
-    const users = database.select('users')
-    return response.end(JSON.stringify(users))
+    request.params = params
+    request.query = query ?  extractQueryParams(query): {}
+    return route.handler(request, response)
   }
+ 
 
 //return response.writeHead(404).end('Not found')
 

@@ -29,9 +29,42 @@ export class Database {
     return data; 
   }
 
-  select (table) {
-    const data = this.#database[table] ?? []
+  select (table, search) {
+ let data = this.#database[table] ?? []
+
+ if(search){
+  data = data.filter(row => {
+    
+    return Object.entries(search).some(([key, value]) => {
+      return row[key].toLowerCase().includes(value.toLowerCase())
+    })
+  })
+ }
 
     return data;
+  }
+
+  delete(table, id){
+    const rowindex = this.#database[table].findIndex(row => row.id === id)
+
+    if(rowindex > -1){
+
+      this.#database[table].splice(rowindex, 1)
+      this.#persist();
+
+    }
+
+  }
+
+  update(table, id, data){
+    const rowindex = this.#database[table].findIndex(row => row.id === id)
+
+    if(rowindex > -1){
+
+      this.#database[table][rowindex] = {id, ...data}
+      this.#persist();
+
+    }
+
   }
 }
