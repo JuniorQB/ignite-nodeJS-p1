@@ -3,16 +3,28 @@ import http from 'node:http'
 
 
 
-
+const users = []
 const server = http.createServer((request, response) => {
   const {method, url } = request
   if(method === 'GET' && url === "/users"){
-    console.log('Lista de Usuarios')
+    return response
+    .setHeader('Content-type', 'application/json')
+    .end(JSON.stringify(users))
   }
 
-  return response.end(
-    'Hello World'
-  )
+  if(method === 'POST' && url === "/users"){
+    users.push({
+      id: 1,
+      name: "Junior"
+    })
+
+    return response.writeHead(200).end(
+      'Hello World'
+    )
+  }
+
+return response.writeHead(404).end('Not found')
+
 })
 
 
